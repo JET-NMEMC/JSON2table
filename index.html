@@ -11,10 +11,10 @@
 
 <body>
     <textarea name="" id="ad" cols="30" rows="10">http://ep.nmemc.org.cn:8888/Water/water2017.json</textarea>
-    <button onclick="go()">执行</button>
+    <button id="go">执行</button>
     <script>
-        function go() {
-            var ad = document.getElementById("ad").value
+        
+            
             // console.log(ad)
 
             // fetch(ad, { mode: 'no-cors' })
@@ -22,14 +22,28 @@
             //     .then((out) => {
             //         console.log('Output: ', out);
             //     }).catch(err => console.error(err));
-            $.getJSON(ad, function (data) {
-                // console.log(data)
-                alert("1")
-                alert (data.length);
-                
-                
+            // $.getJSON(ad, function (data) {
+            //     // console.log(data)
+            //     alert("1")
+            //     alert (data.length);    
+            // });
+            $('#go').click(function () {
+                var ad = document.getElementById("ad").value
+
+                // 伪造ajax提交请求
+                $.ajax({
+                    url: 'ad',
+                    type: 'get',
+                    dataType: 'json', // 伪造ajax 基于script
+                    // jsonp: 'callbacks',
+                    // 随机取一个函数名发给请求方，对方解析好后返回过来
+                    success: function (data) {
+                        console.log(data)
+                    }
+                })
+
             });
-        }
+        
     </script>
 </body>
 
