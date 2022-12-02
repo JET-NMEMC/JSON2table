@@ -10,40 +10,82 @@
 </head>
 
 <body>
-    <textarea name="" id="ad" cols="30" rows="10">http://ep.nmemc.org.cn:8888/Water/water2017.json</textarea>
-    <button id="go">执行</button>
+    <!-- <textarea name="" id="ad" cols="30" rows="10">http://ep.nmemc.org.cn:8888/Water/water2017.json</textarea> -->
+    <input type="file" id="selectdatafile" style="display: none" />
+    <!-- accept=".csv" -->
+    <input type="button" onclick="document.getElementById('selectdatafile').click()" value="选择JSON数据" />
+    <button id="go" onclick="go()">转换CSV并下载</button>
+    <div id="1"></div>
+
     <script>
-        
-            
-            // console.log(ad)
+        function readFileAsText(file, onLoadCallback) {
+            var reader = new FileReader();
+            reader.onload = onLoadCallback;
+            reader.readAsText(file, "utf-8");
+        }
+        var data;
+        var name = "csvFile";
 
-            // fetch(ad, { mode: 'no-cors' })
-            //     .then(res => res.json())
-            //     .then((out) => {
-            //         console.log('Output: ', out);
-            //     }).catch(err => console.error(err));
-            // $.getJSON(ad, function (data) {
-            //     // console.log(data)
-            //     alert("1")
-            //     alert (data.length);    
-            // });
-            $('#go').click(function () {
-                var ad = document.getElementById("ad").value
+        $('#selectdatafile').on('change', function () {
+            name = this.files[0].name.split(".")[0];
+            readFileAsText(this.files[0], function (e) {
+                data = e.target.result
+                $('#1').html(data)
+            })
+        })
 
-                // 伪造ajax提交请求
-                $.ajax({
-                    url: 'ad',
-                    type: 'get',
-                    dataType: 'json', // 伪造ajax 基于script
-                    // jsonp: 'callbacks',
-                    // 随机取一个函数名发给请求方，对方解析好后返回过来
-                    success: function (data) {
-                        console.log(data)
-                    }
-                })
 
-            });
-        
+        function go() {
+            downloadCSVFile(name, ConvertToCSV(data));
+        }
+
+        function ConvertToCSV(objArray) {
+            var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+            var arr = []
+            for (var i = 0; i < array.length; i++) {
+                var line = '';
+                for (var index in array[i]) {
+                    if (line != '') line += ','
+                    line += array[i][index];
+                }
+                arr.push(line)
+            }
+            // return str;
+            return arr.join('\r\n');
+        }
+
+        function downloadCSVFile(fileName, csvFileContent) {
+            // 防止中文乱码的unicode
+            const unicodeMark = "\ufeff";
+            const blob = new Blob(
+                // 必须添加此unicode,否则CSV中的中文会乱码
+                [unicodeMark + csvFileContent],
+                { type: 'text/csv' }
+            );
+            // 创建一个隐藏的用来下载文件的a标签
+            const aElement = document.createElement('a');
+            aElement.download = fileName;
+            aElement.style.display = 'none';
+
+            // 将文件放入内存中
+            const src = URL.createObjectURL(blob);
+            aElement.href = src;
+            document.body.appendChild(aElement);
+
+            // 模拟点击下载事件,进行下载
+            aElement.click();
+
+            // 点击之后,移除我们定义的隐藏a标签
+            document.body.removeChild(aElement);
+
+            // 移除文件对象
+            URL.revokeObjectURL(src);
+        }
+
+
+
+
+
     </script>
 </body>
 
