@@ -5,19 +5,58 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>JSON转换CSV</title>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 </head>
 
 <body>
     <!-- <textarea name="" id="ad" cols="30" rows="10">http://ep.nmemc.org.cn:8888/Water/water2017.json</textarea> -->
+    <h3>上传json转换CSV</h3>
     <input type="file" id="selectdatafile" style="display: none" />
     <!-- accept=".csv" -->
     <input type="button" onclick="document.getElementById('selectdatafile').click()" value="选择JSON数据" />
     <button id="go" onclick="go()">转换CSV并下载</button>
-    <div id="1"></div>
+    <!-- <div id="1"></div> -->
+    <h3>excel表格文字转json、数组</h3>
+    <div>
+        <textarea id="csv" rows="8" cols="200">
+        Direction,1m/s,1-2m/s,2-4m/s,4-6m/s,6-8m/s,8-10m/s,10m/s
+        N,1.81,1.78,0.16,0.00,0.00,0.00,0.00
+        NNE,0.62,1.09,0.00,0.00,0.00,0.00,0.00
+        NE,0.82,0.82,0.07,0.00,0.00,0.00,0.00
+        ENE,0.59,1.22,0.07,0.00,0.00,0.00,0.00
+        E,0.62,2.20,0.49,0.00,0.00,0.00,0.00
+        ESE,1.22,2.01,1.55,0.30,0.13,0.00,0.00
+        SE,1.61,3.06,2.37,2.14,1.74,0.39,0.13
+        SSE,2.04,3.42,1.97,0.86,0.53,0.49,0.00
+        S,2.66,4.74,0.43,0.00,0.00,0.00,0.00
+        SSW,2.96,4.14,0.26,0.00,0.00,0.00,0.00
+        SW,2.53,4.01,1.22,0.49,0.13,0.00,0.00
+        WSW,1.97,2.66,1.97,0.79,0.30,0.00,0.00
+        W,1.64,1.71,0.92,1.45,0.26,0.10,0.00
+        WNW,1.32,2.40,0.99,1.61,0.33,0.00,0.00
+        NW,1.58,4.28,1.28,0.76,0.66,0.69,0.03
+        NNW,1.51,5.00,1.32,0.13,0.23,0.13,0.07
+    </textarea>
+    </div>
+    <br>
+    <button onclick="run()">按tab分割</button>
+    <br>
+    <textarea id="csv2" rows="8" cols="200"></textarea>
+    <textarea id="csv3" rows="8" cols="200"></textarea>
+
 
     <script>
+        function run() {
+            // var text = document.getElementById('csv').innerHTML;
+            var text = document.getElementById('csv').value;
+            var datainput = tableStringToArr(text);
+            console.log(datainput)
+            document.getElementById('csv2').value = JSON.stringify(datainput.objArr)
+            document.getElementById('csv3').value = JSON.stringify(datainput.tableArr)
+        }
+
+
         function readFileAsText(file, onLoadCallback) {
             var reader = new FileReader();
             reader.onload = onLoadCallback;
@@ -81,7 +120,38 @@
             // 移除文件对象
             URL.revokeObjectURL(src);
         }
-
+        //---------------------------------字符串转json数组、json对象
+        function tableStringToArr(text) {
+            text = text.trim();//去除首尾空白
+            var yyy = text.split(/[\n]/); //按行分割
+            var shuju = [];
+            for (var i = 0; i < yyy.length; i++) {
+                // shuju[i] = yyy[i].trim().split(/,|，|\s+/);//去除首尾空白后，行内逗号、空格分割
+                shuju[i] = yyy[i].trim().split(/,|，|\t/);//去除首尾空白后，行内逗号分割
+            };
+            var shuju_ni = shuju[0].map(function (col, i) {
+                return shuju.map(function (row) {
+                    return row[i];
+                })
+            });
+            var shuju2 = []; var shuliang = 0;
+            for (var i = 1; i < shuju.length; i++) {
+                var Obj = {};
+                for (var j = 0; j < shuju[0].length; j++) {
+                    Obj[shuju[0][j]] = Number(shuju[i][j]) + '' !== NaN + '' ? Number(shuju[i][j]) : shuju[i][j];
+                }
+                shuju2.push(Obj); shuliang += shuju[i].length;
+            };
+            // if (shuliang !== (shuju.length - 1) * shuju[0].length) { alert("监测到非法字符，可能是空格或者逗号，请检查数据后再试") };
+            var lieName = [];
+            for (var key in shuju2[0]) { lieName.push(key) };
+            return {
+                tableArr: shuju,
+                tableArr2: shuju_ni,
+                objArr: shuju2,
+                lieName: lieName
+            };
+        }
 
 
 
